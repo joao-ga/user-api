@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb:/data/db
+    networks:
+      - my_network
+
+  api:
+    build: .
+    container_name: go-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - my_network
+
+volumes:
+  mongodb:
+
+networks:
+  my_network:
+    driver: bridge
