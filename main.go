@@ -1,21 +1,49 @@
 package main
 
 import (
-  "fmt"
+	"context"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
+	"net/http"
+	"user-api/controllers"
 )
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+var userCollection *mongo.Collection
+
+func init() {
+	// Conectar ao MongoDB
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://jbiazonferreira:qwerty123456@cluster0.82ixr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"))
+	if err != nil {
+		log.Fatalf("Erro ao criar cliente MongoDB: %v", err)
+	}
+
+	err = client.Connect(context.Background())
+	if err != nil {
+		log.Fatalf("Erro ao conectar ao MongoDB: %v", err)
+	}
+
+	// Definir a coleção que você vai usar
+	userCollection = client.Database("userdb").Collection("users")
+
+	// Inicializar o controlador de usuários
+	controllers.InitCollection(userCollection)
+}
 
 func main() {
-  //TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-  // to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-  s := "gopher"
-  fmt.Println("Hello and welcome, %s!", s)
+	// Criar o roteador Gin
+	r := gin.Default()
 
-  for i := 1; i <= 5; i++ {
-	//TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-	fmt.Println("i =", 100/i)
-  }
+	// Rota de teste na "/"
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "API está funcionando!"})
+	})
+
+	// Rotas de usuários
+	r.POST("/users", controllers.CreateUser) // Criar usuário
+	r.GET("/users", controllers.GetAllUsers) // Buscar todos os usuários
+
+	// Rodar o servidor
+	r.Run(":8080")
 }
