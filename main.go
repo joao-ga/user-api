@@ -41,8 +41,9 @@ func main() {
 	})
 
 	// Rotas de usuários
-	r.POST("/users", controllers.CreateUser) // Criar usuário
-	r.GET("/users", controllers.GetAllUsers) // Buscar todos os usuários
+	r.POST("/users", controllers.CreateUser)
+	r.GET("/users", controllers.GetAllUsers)
+	r.GET("/users/:id", controllers.GetUserById)
 
 	// Rodar o servidor
 	r.Run(":8080")
