@@ -38,7 +38,6 @@ func CreateUser(c *gin.Context) {
 	// Tentar fazer o parsing da data
 	birthday, err := time.Parse(layout, userInput.Birthday)
 	if err != nil {
-		// Logar o erro de parsing para mais informações
 		fmt.Println("Erro ao parsear a data:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use dd/MM/yyyy"})
 		return
@@ -102,4 +101,68 @@ func GetUserById(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func UpdateUser(c *gin.Context) {
+	id := c.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	var newUser struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Birthday string `json:"birthday"`
+	}
+
+	if err := c.BindJSON(&newUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	layout := "02/01/2006"
+	birthday, err := time.Parse(layout, newUser.Birthday)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Use dd/MM/yyyy"})
+		return
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"name":     newUser.Name,
+			"email":    newUser.Email,
+			"password": newUser.Password,
+			"birthday": birthday,
+		},
+	}
+
+	_, err = userCollection.UpdateOne(context.Background(), bson.M{"_id": objectId}, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User updated", "id": objectId})
+}
+
+func DeleteUser(c *gin.Context) {
+	id := c.Param("id")
+
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	_, err = userCollection.DeleteOne(context.Background(), bson.M{"_id": objectId})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }

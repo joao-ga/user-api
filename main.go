@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"user-api/controllers"
+	"user-api/routes"
 )
 
 var userCollection *mongo.Collection
@@ -33,18 +34,16 @@ func init() {
 
 func main() {
 	// Criar o roteador Gin
-	r := gin.Default()
+	router := gin.Default()
 
 	// Rota de teste na "/"
-	r.GET("/", func(c *gin.Context) {
+	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "API está funcionando!"})
 	})
 
 	// Rotas de usuários
-	r.POST("/users", controllers.CreateUser)
-	r.GET("/users", controllers.GetAllUsers)
-	r.GET("/users/:id", controllers.GetUserById)
+	routes.UserRoutes(router)
 
 	// Rodar o servidor
-	r.Run(":8080")
+	router.Run(":8080")
 }
