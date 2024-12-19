@@ -13,5 +13,6 @@ func UserRoutes(router *gin.Engine) {
 		userRoutes.POST("/", controllers.CreateUser)
 		userRoutes.PUT("/:id", controllers.UpdateUser)
 		userRoutes.DELETE("/:id", controllers.DeleteUser)
+		userRoutes.GET("/sendemails", controllers.TestSendBirthdayEmails)
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 	"user-api/models"
+	"user-api/services"
 )
 
 var userCollection *mongo.Collection
@@ -165,4 +166,13 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+func TestSendBirthdayEmails(c *gin.Context) {
+	if err := services.SendBirthdayEmails(userCollection); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully sent birthday emails to user"})
 }
