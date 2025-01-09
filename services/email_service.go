@@ -3,20 +3,32 @@ package services
 import (
 	"context"
 	"fmt"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gopkg.in/gomail.v2"
+	"os"
 	"time"
 	"user-api/models"
 )
 
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Erro ao carregar arquivo .env:", err)
+	}
+}
+
 func SendBirthdayEmails(userCollection *mongo.Collection) error {
-	today := time.Now().Format("02/01")
+	today := time.Now().Format("01-02")
 
 	birthdayUsers := bson.M{
 		"$expr": bson.M{
 			"$eq": bson.A{
-				bson.M{"$substr": bson.A{"birthday", 0, 5}},
+				bson.M{"$dateToString": bson.M{
+					"format": "%m-%d",
+					"date":   "$birthday",
+				}},
 				today,
 			},
 		},
@@ -46,15 +58,15 @@ func SendBirthdayEmails(userCollection *mongo.Collection) error {
 }
 
 func sendEmail(toEmail string, toName string) error {
-	from := "joaogbiazon@gmail.com"
-	password := "123456"
+	from := os.Getenv("EMAIL_USER")
+	password := os.Getenv("EMAIL_PASSWORD")
 
 	subject := "Feliz Aniversário!"
 	body := fmt.Sprintf("Olá %s,\n\nParabéns pelo seu aniversário! Tenha um excelente dia!", toName)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", from)
-	m.SetHeader("To", toName)
+	m.SetHeader("To", toEmail)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/plain", body)
 

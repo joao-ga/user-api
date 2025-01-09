@@ -20,6 +20,8 @@ services:
       - db
     networks:
       - my_network
+    env_file:
+      - .env
 
 volumes:
   mongodb:

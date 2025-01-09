@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copie os arquivos do projeto para o contêiner
 COPY . .
-
+COPY .env .env
 # Baixe as dependências
 RUN go mod tidy
 
